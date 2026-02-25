@@ -1,0 +1,1377 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aman — Dashboard</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    /* ── DARK MODE (défaut) ── */
+    :root {
+      --green: #00e676;
+      --green2: #69f0ae;
+      --yellow: #ffeb3b;
+      --red: #d32f2f;
+      --bg: #040d07;
+      --card: #081410;
+      --card2: #0a1a10;
+      --border: #0d2a1a;
+      --text: #e8f5e9;
+      --muted: #4a7c5e;
+      --nav-bg: rgba(4, 13, 7, 0.88);
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+
+    /* ── LIGHT MODE ── */
+    body.light {
+      --bg: #f8fafc;
+      --card: rgba(255, 255, 255, 0.65);
+      --card2: rgba(241, 245, 249, 0.75);
+      --border: rgba(226, 232, 240, 0.8);
+      --text: #0f172a;
+      --muted: #475569;
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --shadow: rgba(0, 0, 0, 0.03);
+      /* Vert plus foncé pour le mode clair (meilleur contraste) */
+      --green: #15803d;
+      --green2: #16a34a;
+    }
+
+    body.light::before {
+      background-image:
+        linear-gradient(rgba(0, 230, 118, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 230, 118, 0.04) 1px, transparent 1px);
+    }
+
+    body.light nav {
+      background: var(--nav-bg);
+      border-bottom-color: var(--border);
+    }
+
+    body.light .metric-card,
+    body.light .chart-card,
+    body.light .info-card,
+    body.light .report-card {
+      box-shadow: 0 4px 24px var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    body.light #chat-panel {
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    body.light .msg-bot {
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+    }
+
+    /* Alertes light mode : plus visuel */
+    body.light #alert-banner {
+      background: #fef2f2;
+      /* Fond rouge très clair */
+      border-top-color: #fee2e2;
+      border-bottom: 2px solid #ef4444;
+      /* Bordure rouge plus marquée */
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+      /* Ombre portée */
+    }
+
+    body.light .alert-messages {
+      color: #b91c1c;
+      font-weight: 500;
+    }
+
+    body.light .alert-badge {
+      color: #ffffff;
+      background: #dc2626;
+      /* Badge plein pour plus de pep's */
+      border-color: #b91c1c;
+    }
+
+    body.light .alert-sep {
+      color: #fca5a5;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* ── IMAGE DE FOND ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background-image: url('/static/aman.jpeg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      /* Style moderne : flou subtil + sombre pour faire ressortir les cartes */
+      filter: brightness(0.2) saturate(1.2) blur(4px);
+      transform: scale(1.05);
+      /* Évite les bords blancs à cause du blur */
+    }
+
+    body.light::after {
+      filter: brightness(0.65) saturate(1) blur(4px);
+    }
+
+    /* Grid bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(0, 230, 118, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 230, 118, 0.025) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(4, 13, 7, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo i {
+      font-size: 16px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-user {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-user i {
+      font-size: 12px;
+    }
+
+    .nav-user span {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .nav-right a {
+      text-decoration: none;
+    }
+
+    /* Theme toggle button */
+    .btn-theme {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-theme:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.06);
+    }
+
+    /* ── ALERT BANNER ── */
+    #alert-banner {
+      display: none;
+      background: rgba(255, 82, 82, 0.08);
+      border-top: 1px solid rgba(255, 82, 82, 0.15);
+      border-bottom: 1px solid rgba(255, 82, 82, 0.25);
+      padding: 11px 32px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .alert-banner-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .alert-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 82, 82, 0.15);
+      border: 1px solid rgba(255, 82, 82, 0.35);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    .alert-badge i {
+      font-size: 9px;
+    }
+
+    .alert-messages {
+      font-size: 12.5px;
+      color: #ffb3b3;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .alert-sep {
+      color: rgba(255, 82, 82, 0.35);
+      margin: 0 10px;
+      font-size: 11px;
+    }
+
+    /* ── MAIN ── */
+    main {
+      padding: 28px 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .section-title i {
+      font-size: 10px;
+    }
+
+    /* ── METRIC CARDS ── */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s, box-shadow .3s;
+      animation: fadeUp .5s ease both;
+    }
+
+    .metric-card:nth-child(1) {
+      animation-delay: .05s;
+    }
+
+    .metric-card:nth-child(2) {
+      animation-delay: .10s;
+    }
+
+    .metric-card:nth-child(3) {
+      animation-delay: .15s;
+    }
+
+    .metric-card:nth-child(4) {
+      animation-delay: .20s;
+    }
+
+    .metric-card:nth-child(5) {
+      animation-delay: .25s;
+    }
+
+    .metric-card.ok {
+      border-color: rgba(0, 230, 118, 0.2);
+    }
+
+    .metric-card.warn {
+      border-color: rgba(255, 235, 59, 0.3);
+    }
+
+    .metric-card.crit {
+      border-color: rgba(255, 82, 82, 0.4);
+      box-shadow: 0 0 20px rgba(255, 82, 82, 0.08);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-label i {
+      font-size: 10px;
+    }
+
+    .metric-value {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .metric-card.ok .metric-value {
+      color: var(--green);
+    }
+
+    .metric-card.warn .metric-value {
+      color: var(--yellow);
+    }
+
+    .metric-card.crit .metric-value {
+      color: var(--red);
+    }
+
+    .metric-unit {
+      font-size: 13px;
+      font-weight: 400;
+      margin-left: 3px;
+      color: var(--muted);
+    }
+
+    .metric-status {
+      margin-top: 10px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-ok {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .dot-warn {
+      background: var(--yellow);
+      box-shadow: 0 0 6px var(--yellow);
+    }
+
+    .dot-crit {
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+      animation: pulse-red 1s infinite;
+    }
+
+    @keyframes pulse-red {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .3;
+      }
+    }
+
+    /* Battery bar */
+    .battery-bar {
+      margin-top: 8px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .battery-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .5s;
+    }
+
+    /* ── CHARTS ROW ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      animation: fadeUp .5s .3s ease both;
+    }
+
+    .chart-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-card h3 i {
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 200px;
+    }
+
+    /* ── BOTTOM ROW ── */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      animation: fadeUp .5s .4s ease both;
+    }
+
+    .info-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card h3 i {
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-val {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* Report card */
+    .report-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      animation: fadeUp .5s .5s ease both;
+    }
+
+    .report-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .report-card h3 i {
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .report-score {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .report-text {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
+    /* ── CHATBOT ── */
+    #chat-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 1000;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+      box-shadow: 0 4px 24px rgba(0, 230, 118, 0.4);
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #040d07;
+    }
+
+    #chat-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 32px rgba(0, 230, 118, 0.6);
+    }
+
+    #chat-panel {
+      position: fixed;
+      bottom: 100px;
+      right: 28px;
+      z-index: 1000;
+      width: 360px;
+      height: 520px;
+      background: rgba(8, 20, 16, 0.97);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 230, 118, 0.08);
+      transition: all .3s cubic-bezier(.34, 1.56, .64, 1);
+      transform-origin: bottom right;
+    }
+
+    #chat-panel.hidden {
+      transform: scale(0.8);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .chat-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), transparent);
+    }
+
+    .chat-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #040d07;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
+    }
+
+    .chat-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .online-indicator {
+      margin-left: auto;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: blink 2s infinite;
+    }
+
+    .online-label {
+      font-size: 10px;
+      color: var(--green);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .4;
+      }
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .msg {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      animation: msgIn .3s ease;
+    }
+
+    @keyframes msgIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-bot {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-user {
+      background: var(--green);
+      color: #040d07;
+      align-self: flex-end;
+      font-weight: 500;
+      border-bottom-right-radius: 4px;
+    }
+
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 12px 14px;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: typing 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .2s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .4s;
+    }
+
+    @keyframes typing {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+      }
+
+      30% {
+        transform: translateY(-6px);
+      }
+    }
+
+    .chat-chips {
+      padding: 0 12px 10px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .chip i {
+      font-size: 10px;
+    }
+
+    .chip:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: rgba(0, 230, 118, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .chat-input-row {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      background: rgba(4, 13, 7, 0.3);
+    }
+
+    #chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: all .2s;
+    }
+
+    #chat-input:focus {
+      border-color: var(--green);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1);
+    }
+
+    #chat-input::placeholder {
+      color: var(--muted);
+    }
+
+    #send-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--green);
+      border: none;
+      border-radius: 12px;
+      color: #040d07;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 230, 118, 0.2);
+    }
+
+    #send-btn:hover {
+      background: var(--green2);
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 230, 118, 0.4);
+    }
+
+    #send-btn:active {
+      transform: scale(0.95);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media(max-width:900px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 16px;
+      }
+
+      nav {
+        padding: 0 16px;
+      }
+
+      #alert-banner {
+        padding: 10px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="nav-logo"><i class="fa-solid fa-seedling"></i> Aman</div>
+    <div class="nav-right">
+      <div class="nav-user"> Bonjour, <span>{{ name }}</span></div>
+      <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Changer de thème">
+        <i class="fa-solid fa-moon" id="theme-icon"></i>
+      </button>
+      <a href="/logout"><button class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+          Déconnexion</button></a>
+    </div>
+  </nav>
+
+  <!-- ALERT BANNER -->
+  <div id="alert-banner">
+    <div class="alert-banner-inner">
+      <span class="alert-badge"><i class="fa-solid fa-triangle-exclamation"></i> Alerte</span>
+      <div class="alert-messages" id="alert-messages"></div>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- METRICS -->
+    <div class="section-title"><i class="fa-solid fa-microchip"></i> Capteurs IoT — Temps réel</div>
+    <div class="metrics">
+      <div class="metric-card" id="card-ph">
+        <div class="metric-label"><i class="fa-solid fa-flask"></i> pH Eau</div>
+        <div class="metric-value" id="val-ph">—</div>
+        <div class="metric-status"><span class="dot" id="dot-ph"></span><span id="status-ph">—</span></div>
+      </div>
+      <div class="metric-card" id="card-temp">
+        <div class="metric-label"><i class="fa-solid fa-temperature-half"></i> Température</div>
+        <div class="metric-value" id="val-temp">—<span class="metric-unit">°C</span></div>
+        <div class="metric-status"><span class="dot" id="dot-temp"></span><span id="status-temp">—</span></div>
+      </div>
+      <div class="metric-card" id="card-ec">
+        <div class="metric-label"><i class="fa-solid fa-wave-square"></i> EC (Salinité)</div>
+        <div class="metric-value" id="val-ec">—<span class="metric-unit">ms/cm</span></div>
+        <div class="metric-status"><span class="dot" id="dot-ec"></span><span id="status-ec">—</span></div>
+      </div>
+      <div class="metric-card" id="card-npk">
+        <div class="metric-label"><i class="fa-solid fa-leaf"></i> N · P · K</div>
+        <div class="metric-value" style="font-size:18px;" id="val-npk">—</div>
+        <div class="metric-status"><span class="dot dot-ok"></span><span>Minéraux</span></div>
+      </div>
+      <div class="metric-card" id="card-bat">
+        <div class="metric-label"><i class="fa-solid fa-battery-three-quarters"></i> Batterie</div>
+        <div class="metric-value" id="val-bat">—<span class="metric-unit">%</span></div>
+        <div class="battery-bar">
+          <div class="battery-fill" id="bat-fill"></div>
+        </div>
+        <div class="metric-status"><span class="dot" id="dot-bat"></span><span id="status-bat">—</span></div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3><i class="fa-solid fa-chart-line"></i> Qualité eau — Historique temps réel</h3>
+        <div class="chart-wrap"><canvas id="chart-main"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fa-solid fa-sun"></i> Énergie solaire</h3>
+        <div class="chart-wrap"><canvas id="chart-solar"></canvas></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="bottom-row">
+      <div class="info-card">
+        <h3><i class="fa-solid fa-droplet"></i> Données eau &amp; pompes</h3>
+        <div class="info-row"><span>Eau économisée aujourd'hui</span><span class="info-val" id="info-water">— L</span>
+        </div>
+        <div class="info-row"><span>Énergie solaire produite</span><span class="info-val" id="info-solar">— kWh</span>
+        </div>
+        <div class="info-row"><span>Dureté</span><span class="info-val" id="info-n">— ppm</span></div>
+        <div class="info-row"><span>Turbidité</span><span class="info-val" id="info-p">— ppm</span></div>
+        <div class="info-row"><span>Chloramines</span><span class="info-val" id="info-k">— ppm</span></div>
+      </div>
+      <div class="report-card">
+        <h3><i class="fa-solid fa-chart-bar"></i> Rapport du jour</h3>
+        <div class="report-score" id="report-score">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Score qualité eau /100</div>
+        <div class="report-text" id="report-text">Chargement...</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CHATBOT -->
+  <button id="chat-btn" onclick="toggleChat()"><i class="fa-solid fa-robot"></i></button>
+
+  <div id="chat-panel" class="hidden">
+    <div class="chat-header">
+      <div class="chat-avatar"><i class="fa-solid fa-robot"></i></div>
+      <div>
+        <div class="chat-title">AmanBot</div>
+        <div style="font-size:11px;color:var(--muted)">Expert hydroponique IA</div>
+      </div>
+      <div class="online-indicator">
+        <div class="online-dot"></div>
+        <div class="online-label">En ligne</div>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg msg-bot">Bonjour ! Je suis AmanBot, je surveille votre eau en temps réel.<br>Demandez-moi si votre
+        eau est bonne ou s'il faut ajouter quelque chose.</div>
+    </div>
+
+    <div class="chat-chips">
+      <button class="chip" onclick="quickSend('Analyser mon eau')"><i class="fa-solid fa-droplet"></i> Analyser mon
+        eau</button>
+      <button class="chip" onclick="quickSend('Est-ce que je dois ajouter des minéraux ?')"><i
+          class="fa-solid fa-leaf"></i> Ajouter minéraux ?</button>
+      <button class="chip" onclick="quickSend('État énergie solaire')"><i class="fa-solid fa-sun"></i> Énergie</button>
+      <button class="chip" onclick="quickSend('Rapport du jour')"><i class="fa-solid fa-chart-bar"></i> Rapport</button>
+    </div>
+
+    <div class="chat-input-row">
+      <input id="chat-input" placeholder="Posez votre question..." onkeydown="if(event.key==='Enter') sendMsg()">
+      <button id="send-btn" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════
+    //  CHARTS SETUP
+    // ════════════════════════════════════════
+    const labels = [];
+    const phData = [], tempData = [], ecData = [], solarData = [];
+
+    const chartMain = new Chart(document.getElementById('chart-main'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'pH', data: phData, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.08)', tension: .4, pointRadius: 2, borderWidth: 2 },
+          { label: 'Temp °C', data: tempData, borderColor: '#76ff03', backgroundColor: 'rgba(118,255,3,0.07)', tension: .4, pointRadius: 2, borderWidth: 2 },
+          { label: 'EC', data: ecData, borderColor: '#ffeb3b', backgroundColor: 'rgba(255,235,59,0.04)', tension: .4, pointRadius: 2 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#ffffff', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#2d5e3e', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } },
+          y: { ticks: { color: '#2d5e3e', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } }
+        }
+      }
+    });
+
+    const chartSolar = new Chart(document.getElementById('chart-solar'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'kWh', data: solarData, backgroundColor: 'rgba(0,230,118,0.3)', borderColor: '#00e676', borderWidth: 1, borderRadius: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#2d5e3e', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } },
+          y: { ticks: { color: '#2d5e3e', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } }
+        }
+      }
+    });
+
+    function addChartPoint(time, ph, temp, ec, solar) {
+      if (labels.length >= 15) {
+        labels.shift(); phData.shift(); tempData.shift(); ecData.shift(); solarData.shift();
+      }
+      labels.push(time);
+      phData.push(ph); tempData.push(temp); ecData.push(ec); solarData.push(solar);
+      chartMain.update(); chartSolar.update();
+    }
+
+    // ════════════════════════════════════════
+    //  STATUS HELPER
+    // ════════════════════════════════════════
+    function setCard(id, dotId, statusId, value, level, statusText) {
+      const card = document.getElementById(id);
+      const dot = document.getElementById(dotId);
+      const st = document.getElementById(statusId);
+      card.className = 'metric-card ' + level;
+      dot.className = 'dot dot-' + level;
+      st.textContent = statusText;
+    }
+
+    // ════════════════════════════════════════
+    //  ALERT BANNER
+    // ════════════════════════════════════════
+    function showAlerts(alerts) {
+      const banner = document.getElementById('alert-banner');
+      const msgBox = document.getElementById('alert-messages');
+      if (!alerts || alerts.length === 0) {
+        banner.style.display = 'none';
+        return;
+      }
+      banner.style.display = 'block';
+      msgBox.innerHTML = alerts.map((msg, i) =>
+        (i > 0 ? '<span class="alert-sep">|</span>' : '') +
+        '<span>' + msg + '</span>'
+      ).join('');
+    }
+
+    // ════════════════════════════════════════
+    //  FETCH SENSORS — toutes les 5 secondes
+    // ════════════════════════════════════════
+    async function fetchSensors() {
+      try {
+        const res = await fetch('/api/sensors');
+        const json = await res.json();
+        const d = json.data;
+        const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Mettre à jour les cartes
+        document.getElementById('val-ph').innerHTML = d.ph;
+        document.getElementById('val-temp').innerHTML = d.temperature + '<span class="metric-unit">°C</span>';
+        document.getElementById('val-ec').innerHTML = d.ec + '<span class="metric-unit">ms/cm</span>';
+        document.getElementById('val-npk').textContent = `${d.nitrogen} · ${d.phosphorus} · ${d.potassium}`;
+        document.getElementById('val-bat').innerHTML = d.battery + '<span class="metric-unit">%</span>';
+
+        // Infos
+        document.getElementById('info-water').textContent = d.water_saved + ' L';
+        document.getElementById('info-solar').textContent = d.solar + ' kWh';
+        document.getElementById('info-n').textContent = d.hardness + ' mg/L';
+        document.getElementById('info-p').textContent = d.turbidity + ' NTU';
+        document.getElementById('info-k').textContent = d.chloramines + ' mg/L';
+
+        // Battery bar
+        const fill = document.getElementById('bat-fill');
+        fill.style.width = d.battery + '%';
+        fill.style.background = d.battery > 50 ? '#00e676' : d.battery > 20 ? '#ffeb3b' : '#ff5252';
+
+        // Status pH
+        const phOk = d.ph >= 5.5 && d.ph <= 7.0;
+        const phWarn = (d.ph >= 5.0 && d.ph < 5.5) || (d.ph > 7.0 && d.ph <= 7.5);
+        setCard('card-ph', 'dot-ph', 'status-ph', d.ph,
+          phOk ? 'ok' : phWarn ? 'warn' : 'crit',
+          phOk ? 'Optimal ✓' : phWarn ? 'Attention' : 'Critique !'
+        );
+        // Status temp
+        const tOk = d.temperature >= 18 && d.temperature <= 26;
+        setCard('card-temp', 'dot-temp', 'status-temp', d.temperature,
+          tOk ? 'ok' : d.temperature <= 28 ? 'warn' : 'crit',
+          tOk ? 'Normal ✓' : 'Élevée'
+        );
+        // Status EC
+        const ecOk = d.ec >= 1.2 && d.ec <= 2.5;
+        setCard('card-ec', 'dot-ec', 'status-ec', d.ec,
+          ecOk ? 'ok' : d.ec <= 3.0 ? 'warn' : 'crit',
+          ecOk ? 'Normal ✓' : 'Élevé'
+        );
+        // Status battery
+        setCard('card-bat', 'dot-bat', 'status-bat', d.battery,
+          d.battery > 50 ? 'ok' : d.battery > 20 ? 'warn' : 'crit',
+          d.battery > 50 ? 'Chargée ✓' : d.battery > 20 ? 'Faible' : 'Critique !'
+        );
+
+        // Alertes
+        showAlerts(json.alerts || []);
+
+        // Graphiques
+        addChartPoint(now, d.ph, d.temperature, d.ec, d.solar);
+
+      } catch (e) { console.error('Erreur sensors:', e); }
+    }
+
+    // ════════════════════════════════════════
+    //  FETCH REPORT — toutes les 30 secondes
+    // ════════════════════════════════════════
+    async function fetchReport() {
+      try {
+        const res = await fetch('/api/report');
+        const json = await res.json();
+        document.getElementById('report-score').textContent = json.score;
+        document.getElementById('report-text').textContent = json.summary;
+        const scoreEl = document.getElementById('report-score');
+        scoreEl.style.color = json.score >= 80 ? '#00e676' : json.score >= 50 ? '#ffeb3b' : '#ff5252';
+      } catch (e) { }
+    }
+
+    // Démarrer
+    fetchSensors();
+    fetchReport();
+    setInterval(fetchSensors, 5000);
+    setInterval(fetchReport, 30000);
+
+    // ════════════════════════════════════════
+    //  CHATBOT
+    // ════════════════════════════════════════
+    let chatOpen = false;
+
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      document.getElementById('chat-panel').classList.toggle('hidden', !chatOpen);
+    }
+
+    // Convertit le Markdown basique en HTML (uniquement pour les messages bot)
+    function parseMarkdown(text) {
+      return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // sécurité XSS
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')   // **gras**
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')               // *italique*
+        .replace(/`(.+?)`/g, '<code style="background:rgba(0,230,118,0.1);padding:1px 5px;border-radius:4px;font-size:12px;">$1</code>') // `code`
+        .replace(/\n/g, '<br>');                            // sauts de ligne
+    }
+
+    function addMsg(text, isUser) {
+      const box = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'msg ' + (isUser ? 'msg-user' : 'msg-bot');
+      if (isUser) {
+        div.textContent = text; // messages utilisateur = texte brut (sécurisé)
+      } else {
+        div.innerHTML = parseMarkdown(text); // messages bot = Markdown rendu
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showTyping() {
+      const box = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'msg msg-bot typing';
+      div.id = 'typing';
+      div.innerHTML = '<span></span><span></span><span></span>';
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function hideTyping() {
+      const t = document.getElementById('typing');
+      if (t) t.remove();
+    }
+
+    async function sendMsg() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      addMsg(msg, true);
+      showTyping();
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: msg })
+        });
+        const json = await res.json();
+        hideTyping();
+        addMsg(json.response, false);
+      } catch (e) {
+        hideTyping();
+        addMsg('Erreur de connexion. Vérifiez le backend.', false);
+      }
+    }
+
+    function quickSend(text) {
+      document.getElementById('chat-input').value = text;
+      sendMsg();
+    }
+
+    // ════════════════════════════════════════
+    //  THEME TOGGLE
+    // ════════════════════════════════════════
+    function applyTheme(mode) {
+      const icon = document.getElementById('theme-icon');
+      const isLight = (mode === 'light');
+
+      if (isLight) {
+        document.body.classList.add('light');
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        document.body.classList.remove('light');
+        icon.className = 'fa-solid fa-moon';
+      }
+
+      localStorage.setItem('aman-theme', mode);
+
+      // Mettre à jour les couleurs des graphes
+      if (typeof chartMain !== 'undefined' && typeof chartSolar !== 'undefined') {
+        const green = isLight ? '#15803d' : '#00e676';
+        const green2 = isLight ? '#166534' : '#76ff03';
+        const yellow = isLight ? '#a16207' : '#ffeb3b';
+        const axisColor = isLight ? '#1e293b' : '#2d5e3e';
+        const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(0,230,118,0.06)';
+
+        // Chart Main
+        chartMain.data.datasets[0].borderColor = green;
+        chartMain.data.datasets[1].borderColor = green2;
+        chartMain.data.datasets[2].borderColor = yellow;
+        chartMain.options.scales.x.ticks.color = axisColor;
+        chartMain.options.scales.y.ticks.color = axisColor;
+        chartMain.options.scales.x.grid.color = gridColor;
+        chartMain.options.scales.y.grid.color = gridColor;
+        chartMain.options.plugins.legend.labels.color = '#ffffff';
+        chartMain.update();
+
+        // Chart Solar
+        chartSolar.data.datasets[0].borderColor = green;
+        chartSolar.data.datasets[0].backgroundColor = isLight ? 'rgba(21, 128, 61, 0.4)' : 'rgba(0, 230, 118, 0.3)';
+        chartSolar.options.scales.x.ticks.color = axisColor;
+        chartSolar.options.scales.y.ticks.color = axisColor;
+        chartSolar.options.scales.x.grid.color = gridColor;
+        chartSolar.options.scales.y.grid.color = gridColor;
+        chartSolar.update();
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light');
+      applyTheme(isLight ? 'dark' : 'light');
+    }
+
+    // Appliquer au chargement
+    (function () {
+      const saved = localStorage.getItem('aman-theme');
+      if (saved) {
+        applyTheme(saved);
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+        applyTheme('light');
+      }
+    })();
+  </script>
+</body>
+
+</html>
