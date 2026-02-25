@@ -636,7 +636,7 @@
       z-index: 1000;
       width: 360px;
       height: 520px;
-      background: rgba(8, 20, 16, 0.97);
+      background: #040d07;
       backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -654,12 +654,14 @@
     }
 
     .chat-header {
-      padding: 18px 20px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 12px;
-      background: linear-gradient(to bottom, rgba(0, 230, 118, 0.05), transparent);
+      background: #0d2116;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
     }
 
     .chat-avatar {
@@ -854,8 +856,11 @@
       padding: 16px 20px;
       border-top: 1px solid var(--border);
       display: flex;
+      align-items: center;
       gap: 10px;
-      background: rgba(4, 13, 7, 0.3);
+      background: #0d2116;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
 
     #chat-input {
@@ -1092,8 +1097,8 @@
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { labels: { color: '#ffffff', font: { size: 11 } } } },
         scales: {
-          x: { ticks: { color: '#2d5e3e', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } },
-          y: { ticks: { color: '#2d5e3e', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } }
+          x: { ticks: { color: '#ffffff', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } },
+          y: { ticks: { color: '#ffffff', font: { size: 10 } }, grid: { color: 'rgba(0,230,118,0.06)' } }
         }
       }
     });
@@ -1108,8 +1113,8 @@
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: '#2d5e3e', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } },
-          y: { ticks: { color: '#2d5e3e', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } }
+          x: { ticks: { color: '#ffffff', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } },
+          y: { ticks: { color: '#ffffff', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(0,230,118,0.06)' } }
         }
       }
     });
@@ -1332,7 +1337,7 @@
         const green = isLight ? '#15803d' : '#00e676';
         const green2 = isLight ? '#166534' : '#76ff03';
         const yellow = isLight ? '#a16207' : '#ffeb3b';
-        const axisColor = isLight ? '#1e293b' : '#2d5e3e';
+        const axisColor = '#ffffff';
         const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(0,230,118,0.06)';
 
         // Chart Main
