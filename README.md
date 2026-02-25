@@ -51,9 +51,5 @@
 - `templates/` : Pages HTML (Dashboard, Login, Register).
 - `water.csv` : Données historiques des capteurs utilisées pour la simulation.
 
-## 📝 Licence
-
-Ce projet est sous licence MIT. Libre à vous de l'utiliser et de l'améliorer !
-
 ---
 *Développé pour une agriculture plus durable et intelligente. 🍃*
